@@ -16,7 +16,7 @@ require "classes/searchables.rb"
 class Presume
 
   attr_accessor :sections, :headers, :bullets, :all_types, :classifides
-  
+
   def initialize(doc, name)
     @resume_classifier = ResumeClassifier.new(doc, name, self)
     @resume_classifier.classify
@@ -66,62 +66,62 @@ class Presume
     match_searchables_to_classifides(hash, @bullets)
   end
 
-    def match_searchables_to_classifides(hash, classifides)
-      setup_match_searchables(hash, classifides)
-      check_for_searchable_match
-      return @matched_searchables
+  def match_searchables_to_classifides(hash, classifides)
+    setup_match_searchables(hash, classifides)
+    check_for_searchable_match
+    return @matched_searchables
+  end
+
+  def setup_match_searchables(hash, classifides)
+    set_classifides(classifides)
+    set_searchables(hash)
+    reset_matched_searchables
+  end
+
+  def set_classifides(classifides)
+    @classifides = classifides
+  end
+
+  def set_searchables(hash)
+    @searchables = Searchables.new(hash)
+  end
+
+  def reset_matched_searchables
+    @matched_searchables = {}
+  end
+
+  def check_for_searchable_match
+    classifide_objects.each do |classifide|
+      searchable_objects.each do |searchable|
+        if matched_text?(classifide, searchable) and matched_duration?(classifide, searchable)
+          add_to_matched_searchables(classifide, searchable)
+        end
+      end
     end
+  end
 
-      def setup_match_searchables(hash, classifides)
-        set_classifides(classifides)
-        set_searchables(hash)
-        reset_matched_searchables
-      end
+  def classifide_objects
+    @classifides.values
+  end
 
-        def set_classifides(classifides)
-          @classifides = classifides
-        end
+  def searchable_objects
+    @searchables.all.values
+  end
 
-        def set_searchables(hash)
-          @searchables = Searchables.new(hash)
-        end
+  def matched_text?(classifide, searchable)
+    !classifide.text[searchable.regex].nil?
+  end
 
-        def reset_matched_searchables
-          @matched_searchables = {}
-        end
+  def matched_duration?(classifide, searchable)
+    classifide.duration >= searchable.duration
+  end
 
-      def check_for_searchable_match
-        classifide_objects.each do |classifide|
-          searchable_objects.each do |searchable|
-            if matched_text?(classifide, searchable) and matched_duration?(classifide, searchable)
-              add_to_matched_searchables(classifide, searchable)
-            end
-          end
-        end
-      end
-
-        def classifide_objects
-          @classifides.values
-        end
-
-        def searchable_objects
-          @searchables.all.values
-        end
-
-        def matched_text?(classifide, searchable)
-          !classifide.text[searchable.regex].nil?
-        end
-
-        def matched_duration?(classifide, searchable)
-          classifide.duration >= searchable.duration
-        end
-
-        def add_to_matched_searchables(classifide, searchable)
-          if @matched_searchables[searchable.raw_name].nil?
-            @matched_searchables[searchable.raw_name] = [classifide]
-          else
-            @matched_searchables[searchable.raw_name] += [classifide]
-          end
-        end
+  def add_to_matched_searchables(classifide, searchable)
+    if @matched_searchables[searchable.raw_name].nil?
+      @matched_searchables[searchable.raw_name] = [classifide]
+    else
+      @matched_searchables[searchable.raw_name] += [classifide]
+    end
+  end
 end
 
